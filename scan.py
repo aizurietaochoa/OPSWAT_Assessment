@@ -9,9 +9,18 @@ def fetchFile(path):
     return content
 
 def reportByHash(apikey, samplefile):
-    # Retrieves report based on hashed value of samplefile.txt
+    # Retrieves report based on MD5 hashed value of samplefile.txt
     hashedFile = str(hashlib.md5(samplefile.encode()).hexdigest())
     url = 'https://api.metadefender.com/v4/hash/' + hashedFile
+    headers = {
+        'apikey': apikey
+    }
+
+    response = requests.request("GET", url, headers=headers)
+    return response.text
+
+def reportByDomain(apikey, domain):
+    url = 'https://api.metadefender.com/v4/domain/' + domain
     headers = {
         'apikey': apikey
     }
@@ -25,8 +34,10 @@ def main():
     # Obtain user provided samplefile.txt
     samplefile = fetchFile('samplefile.txt')
 
-    hashReport = reportByHash(apikey, samplefile)
-    print(hashReport)
+    # hashReport = reportByHash(apikey, samplefile)
+    # print(hashReport)
+    domainReport = reportByDomain(apikey, 'google.com')
+    print(domainReport)
 
 
 main()
