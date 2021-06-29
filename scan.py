@@ -1,3 +1,5 @@
+import sys
+import os
 import requests
 import hashlib
 import json
@@ -45,13 +47,14 @@ def reportByDomain(apikey, domain):
 
 
 def reportByFile(apikey, path):
+    filename = os.path.basename(path)
     # Begins report process by uploading file and returning response containing data_id for file
     url = 'https://api.metadefender.com/v4/file'
     data = open(path, 'rb').read()
     # Uploading in binary mode
     headers = {
         'apikey': apikey,
-        'filename': 'samplefile.txt',
+        'filename': filename,
         'Content-Type': 'application/octet-stream',
     }
 
@@ -97,9 +100,9 @@ def generateReport(response):
 
 def main():
     # Obtain user provided apikey
-    apikey = fetchFile('apikey.txt')
-    # Obtain user provided samplefile.txt
-    samplefile = fetchFile('samplefile.txt')
+    apikey = fetchFile('./apikey/apikey.txt')
+    # Obtain user provided file
+    samplefile = fetchFile(str(sys.argv[1]))
 
     # Send MD5 hash of file to see if reports exist
     hashReport = reportByHash(apikey, samplefile)
@@ -112,7 +115,7 @@ def main():
     # If hash has no reports
     elif hashReport.status_code == 404:
         # Upload file and retrieve dataID
-        fileReport = reportByFile(apikey, 'samplefile.txt')
+        fileReport = reportByFile(apikey, str(sys.argv[1]))
         fileReport_formatted = json.loads(
             fileReport.content.decode('utf-8-sig').encode('utf-8'))
         dataID = fileReport_formatted['data_id']
