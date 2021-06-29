@@ -19,7 +19,8 @@ def reportByHash(apikey, samplefile):
     }
     try:
         response = requests.request("GET", url, headers=headers)
-        print(response)
+        # print(response)
+
         # Raises exception for HTTP errors, except for 404
         # 404 error should proceed to upload file instead of exiting
         if response.status_code != 404:
@@ -37,7 +38,7 @@ def reportByDomain(apikey, domain):
 
     try:
         response = requests.request("GET", url, headers=headers)
-        print(response)
+        # print(response)
         response.raise_for_status()
     except requests.exceptions.HTTPError as err:
         raise SystemExit(err)
@@ -55,7 +56,7 @@ def reportByFile(apikey, path):
 
     try:
         response = requests.request("POST", url, data=data, headers=headers)
-        print(response)
+        # print(response)
         response.raise_for_status()
     except requests.exceptions.HTTPError as err:
         raise SystemExit(err)
@@ -69,7 +70,7 @@ def pollByDataID(apikey, dataID):
     }
     try:
         response = requests.request("GET", url, headers=headers)
-        print(response)
+        # print(response)
         response.raise_for_status()
     except requests.exceptions.HTTPError as err:
         raise SystemExit(err)
@@ -101,6 +102,7 @@ def main():
             pollReport_formatted = json.loads(
                 pollReport.content.decode('utf-8-sig').encode('utf-8'))
             progress = pollReport_formatted['scan_results']['progress_percentage']
+            print("Polling...progress at " + progress + "%")
             if progress == 100:
                 break
         print(pollReport.text)
