@@ -33,9 +33,7 @@ def reportByDomain(apikey, domain):
 
 def reportByFile(apikey, path):
     url = 'https://api.metadefender.com/v4/file'
-
     data = open(path, 'rb').read()
-
     headers = {
         'apikey': apikey,
         'filename': 'samplefile.txt',
@@ -44,6 +42,17 @@ def reportByFile(apikey, path):
     }
 
     response = requests.request("POST", url, data=data, headers=headers)
+    print(response)
+    return response.text
+
+
+def pollByDataID(apikey, dataID):
+    url = 'https://api.metadefender.com/v4/file/' + dataID
+    headers = {
+        'apikey': apikey
+    }
+    response = requests.request("GET", url, headers=headers)
+    print(response)
     return response.text
 
 
@@ -57,8 +66,10 @@ def main():
     # print(hashReport)
     # domainReport = reportByDomain(apikey, 'google.com')
     # print(domainReport)
-    fileReport = reportByFile(apikey, 'samplefile.txt')
-    print(fileReport)
+    # fileReport = reportByFile(apikey, 'samplefile.txt')
+    # print(fileReport)
+    pollReport = pollByDataID(apikey, 'bzIxMDYyOTBpWWowVXF4a1B2MW1aVU12LTc')
+    print(pollReport)
 
 
 main()
