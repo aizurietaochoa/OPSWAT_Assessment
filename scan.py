@@ -1,5 +1,6 @@
 import requests
 import hashlib
+import json
 
 
 def fetchFile(path):
@@ -16,9 +17,16 @@ def reportByHash(apikey, samplefile):
     headers = {
         'apikey': apikey
     }
-
-    response = requests.request("GET", url, headers=headers)
-    return response.text
+    try:
+        response = requests.request("GET", url, headers=headers)
+        print(response)
+        # Raises exception for HTTP errors, except for 404
+        # 404 error should proceed to upload file instead of exiting
+        if response.status_code != 404:
+            response.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        raise SystemExit(err)
+    return response
 
 
 def reportByDomain(apikey, domain):
@@ -27,8 +35,13 @@ def reportByDomain(apikey, domain):
         'apikey': apikey
     }
 
-    response = requests.request("GET", url, headers=headers)
-    return response.text
+    try:
+        response = requests.request("GET", url, headers=headers)
+        print(response)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        raise SystemExit(err)
+    return response
 
 
 def reportByFile(apikey, path):
@@ -38,12 +51,15 @@ def reportByFile(apikey, path):
         'apikey': apikey,
         'filename': 'samplefile.txt',
         'Content-Type': 'application/octet-stream',
-
     }
 
-    response = requests.request("POST", url, data=data, headers=headers)
-    print(response)
-    return response.text
+    try:
+        response = requests.request("POST", url, data=data, headers=headers)
+        print(response)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        raise SystemExit(err)
+    return response
 
 
 def pollByDataID(apikey, dataID):
@@ -51,9 +67,13 @@ def pollByDataID(apikey, dataID):
     headers = {
         'apikey': apikey
     }
-    response = requests.request("GET", url, headers=headers)
-    print(response)
-    return response.text
+    try:
+        response = requests.request("GET", url, headers=headers)
+        print(response)
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as err:
+        raise SystemExit(err)
+    return response
 
 
 def main():
@@ -62,14 +82,28 @@ def main():
     # Obtain user provided samplefile.txt
     samplefile = fetchFile('samplefile.txt')
 
-    # hashReport = reportByHash(apikey, samplefile)
-    # print(hashReport)
-    # domainReport = reportByDomain(apikey, 'google.com')
-    # print(domainReport)
-    # fileReport = reportByFile(apikey, 'samplefile.txt')
-    # print(fileReport)
-    pollReport = pollByDataID(apikey, 'bzIxMDYyOTBpWWowVXF4a1B2MW1aVU12LTc')
-    print(pollReport)
+    # Send MD5 hash of file to see if reports exist
+    hashReport = reportByHash(apikey, samplefile)
+    # If hash already has reports
+    if hashReport.status_code == 200:
+        print("Hash found in db!")
+        print(hashReport.text)
+    # If hash has no reports
+    elif hashReport.status_code == 404:
+        # Upload file and retrieve dataID
+        fileReport = reportByFile(apikey, 'samplefile.txt')
+        fileReport_formatted = json.loads(
+            fileReport.content.decode('utf-8-sig').encode('utf-8'))
+        dataID = fileReport_formatted['data_id']
+
+        while(True):
+            pollReport = pollByDataID(apikey, dataID)
+            pollReport_formatted = json.loads(
+                pollReport.content.decode('utf-8-sig').encode('utf-8'))
+            progress = pollReport_formatted['scan_results']['progress_percentage']
+            if progress == 100:
+                break
+        print(pollReport.text)
 
 
 main()
