@@ -14,7 +14,7 @@ Before running the application:
 
 1. Install Python 3.9.6 or above
 2. In the project directory run in a terminal:
-   `pip install requirements.txt`
+   `pip install -r requirements.txt`
 3. Place your apikey in a file apikeys.txt in the apikeys folder
 
 ### Usage
