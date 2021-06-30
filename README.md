@@ -13,7 +13,7 @@ This application receives takes a user provided file and checks to see if report
 Before running the application:
 
 1. Install Python 3.9.6 or above
-2. In the project directory run:
+2. In the project directory run in a terminal:
    `pip install requirements.txt`
 3. Place your apikey in a file apikeys.txt in the apikeys folder
 
@@ -21,7 +21,7 @@ Before running the application:
 
 ---
 
-To scan a file, simply run the python code with the path to your file as an argument, e.g.
+To scan a file, simply run the python code with the path to your file as an argument in a terminal, e.g.
 
 `python scan.py c:\Users\*username*\Documents\samplefile.txt`
 
