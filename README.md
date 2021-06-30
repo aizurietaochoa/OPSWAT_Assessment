@@ -21,7 +21,7 @@ Before running the application:
 
 ---
 
-To scan a file, simply run the python code with the path to your file as an argument in a terminal, e.g.
+To scan a file, simply run scan.py with the path to your file as an argument in a terminal, e.g.
 
 `python scan.py c:\Users\*username*\Documents\samplefile.txt`
 
