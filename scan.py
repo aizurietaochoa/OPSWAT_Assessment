@@ -5,16 +5,25 @@ import hashlib
 import json
 
 
-def fetchFile(path):
-    file = open(path, 'r')
-    content = file.read()
+def fetchKey():
+    file = open('./apikey/apikey.txt', 'r')
+    apikey = file.read()
     file.close()
-    return content
+    return apikey
 
 
-def reportByHash(apikey, samplefile):
+def hashFile(inputFilePath):
+    # Hashes file in chunks if too large to be handled in memory
+    with open(inputFilePath, "rb") as inputFile:
+        file_hash = hashlib.md5()
+        while chunk := inputFile.read(8192):
+            file_hash.update(chunk)
+    return file_hash.hexdigest()
+
+
+def reportByHash(apikey, inputFilePath):
     # Retrieves report based on MD5 hashed value of input file
-    hashedFile = str(hashlib.md5(samplefile.encode()).hexdigest())
+    hashedFile = hashFile(inputFilePath)
     url = 'https://api.metadefender.com/v4/hash/' + hashedFile
     headers = {
         'apikey': apikey
@@ -83,29 +92,48 @@ def pollByDataID(apikey, dataID):
 def generateReport(response):
     # Generates report according to provided guidelines
     # Requires JSON parsed response
+    outputFile = open('report.txt', 'w')
     print("filename: " + str(response['file_info']['display_name']))
+    print("filename: " +
+          str(response['file_info']['display_name']), file=outputFile)
+
     print("overall_status: Clean" if response['scan_results']['scan_all_result_a']
           == "No Threat Detected" else "overall_status: Threats Detected")
+    print("overall_status: Clean" if response['scan_results']['scan_all_result_a']
+          == "No Threat Detected" else "overall_status: Threats Detected", file=outputFile)
 
     scanReports = response['scan_results']['scan_details']
     for engine in scanReports:
         print("engine: " + str(engine))
+        print("engine: " + str(engine), file=outputFile)
+
         print("threat_found: Clean" if scanReports[engine]['threat_found'] ==
               '' else "threat_found: " + str(scanReports[engine]['threat_found']))
+        print("threat_found: Clean" if scanReports[engine]['threat_found'] ==
+              '' else "threat_found: " + str(scanReports[engine]['threat_found']), file=outputFile)
+
         print("scan_result: " + str(scanReports[engine]['scan_result_i']))
+        print("scan_result: " +
+              str(scanReports[engine]['scan_result_i']), file=outputFile)
+
         print("def_time: " + str(scanReports[engine]['def_time']))
+        print("def_time: " +
+              str(scanReports[engine]['def_time']), file=outputFile)
 
     print("END")
+    print("END", file=outputFile)
+    outputFile.close()
+    return
 
 
 def main():
     # Obtain user provided apikey
-    apikey = fetchFile('./apikey/apikey.txt')
-    # Obtain user provided file
-    samplefile = fetchFile(str(sys.argv[1]))
+    apikey = fetchKey()
+    # User provided file to be scanned
+    inputFilePath = str(sys.argv[1])
 
     # Send MD5 hash of file to see if reports exist
-    hashReport = reportByHash(apikey, samplefile)
+    hashReport = reportByHash(apikey, inputFilePath)
     # If hash already has reports
     if hashReport.status_code == 200:
         hashReport_formatted = json.loads(
@@ -115,7 +143,7 @@ def main():
     # If hash has no reports
     elif hashReport.status_code == 404:
         # Upload file and retrieve dataID
-        fileReport = reportByFile(apikey, str(sys.argv[1]))
+        fileReport = reportByFile(apikey, inputFilePath)
         fileReport_formatted = json.loads(
             fileReport.content.decode('utf-8-sig').encode('utf-8'))
         dataID = fileReport_formatted['data_id']
@@ -131,6 +159,7 @@ def main():
                 break
         pollReport_formatted = json.loads(
             pollReport.content.decode('utf-8-sig').encode('utf-8'))
+        print("\n\n\n")
         # Generate report based on file after polling is complete
         generateReport(pollReport_formatted)
 
