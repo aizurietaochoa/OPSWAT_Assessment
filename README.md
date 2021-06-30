@@ -22,5 +22,7 @@ Before running the application:
 ---
 
 To scan a file, simply run the python code with the path to your file as an argument, e.g.
+
 `python scan.py c:\Users\*username*\Documents\samplefile.txt`
+
 The application will output the report to the console and print the report to report.txt
